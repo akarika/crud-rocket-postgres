@@ -6,11 +6,15 @@
 // i do import this in main , for globally utilisation
 #[macro_use] extern crate serde_derive;
 #[macro_use] extern crate rocket_contrib;
+#[macro_use]
+extern crate diesel;
 
 pub mod models;
 pub mod crud;
-use crud::crud_hero as api;
+pub mod  db;
+pub mod schema;
 
+use crud::crud_hero as api;
 
 
 #[get("/<id>/<shop>")]
@@ -21,6 +25,7 @@ fn index(id:u8,shop: String) -> String {
 fn main() {
 
     rocket::ignite()
+        .manage(db::connect())
         .mount("/hero", routes![
         api::create,
         api::update,
