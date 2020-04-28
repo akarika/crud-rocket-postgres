@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+
+  reverse-proxy:
+    image: traefik:v2.2
+    restart: unless-stopped
+    networks:
+      - backend
+    ports:
+      - 443:443
+    environment:
+      - GANDIV5_API_KEY=${GANDI_API_KEY}
+    command:
+      - --api
+      - --log
+      - --log.level=DEBUG
+      - --accesslog
+      - --entryPoints.default.address=:443
+      - --entrypoints.default.http.tls
+      - --entrypoints.default.http.tls.certresolver=letsencrypt
+      - --entrypoints.default.http.tls.domains=*.${WWW_DOMAIN}
+      - --providers.docker
+      - --providers.docker.exposedByDefault=false
+      - --certificatesresolvers.letsencrypt.acme.caserver=${ACME_CA_SERVER}
+      - --certificatesresolvers.letsencrypt.acme.dnschallenge=true
+      - --certificatesresolvers.letsencrypt.acme.dnschallenge.provider=gandiv5
+      - --certificatesresolvers.letsencrypt.acme.dnschallenge.delaybeforecheck=90
+      - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}
+      - --certificatesresolvers.letsencrypt.acme.storage=/acme.json
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${DATA_DIR}/reverse-proxy/acme.json:/acme.json
+    container_name: reverse-proxy
+
+  rocket-backend:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      - pgdb
+    networks:
+      - backend
+      - pgdb
+    container_name: rocket-backend
+    environment:
+      - ROCKET_ENV=dev
+      - DATABASE_URL=${DATABASE_URL}
+    labels:
+      - "traefik.http.routers.rocket-backend.rule=Host(`${WWW_DOMAIN}`)"
+      - "traefik.http.routers.rocket-backend.tls=true"
+      - "traefik.http.services.rest-api.loadbalancer.server.port=8000"
+      - "traefik.http.middlewares.httpsecurity.headers.referrerPolicy=strict-origin"
+      - "traefik.http.middlewares.httpsecurity.headers.stsSeconds=315360000"
+      - "traefik.http.middlewares.httpsecurity.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.httpsecurity.headers.customFrameOptionsValue=DENY"
+      - "traefik.http.middlewares.httpsecurity.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.httpsecurity.headers.contentTypeNosniff=true"
+      - "traefik.docker.network=backend"
+      - "traefik.enable=true"
+
+  pgdb:
+    image: postgres:12-alpine
+    restart: unless-stopped
+    networks:
+      - pgdb
+    volumes:
+      - ${DATA_DIR}/db:/var/lib/postgresql/data
+    container_name: pgdb
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    labels:
+      - "traefik.enable=false"
+
+networks:
+  default:
+  pgdb:
+    name: pgdb
+  backend:
+    name: backend
