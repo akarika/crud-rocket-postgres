@@ -1,4 +1,4 @@
-# Prerequuuuuuuuuuuuuuuuuuuuuuisites
+# Prerequisites
 
 - [Docker](https://docker.com)
 - [Docker Compose](https://docs.docker.com/compose)
