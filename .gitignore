@@ -12,3 +12,7 @@ Cargo.lock
 
 .DS_Store
 .idea
+# No .env file on git
+.env
+# No data files on git.
+data/

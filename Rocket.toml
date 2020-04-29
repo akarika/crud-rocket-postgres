@@ -1,0 +1,16 @@
+[global]
+address = "0.0.0.0"
+port = 8000
+keep_alive = 5
+
+[development]
+log = "debug"
+limits = { forms = 32768 }
+
+[staging]
+log = "normal"
+limits = { forms = 32768 }
+
+[production]
+log = "critical"
+limits = { forms = 32768 }
