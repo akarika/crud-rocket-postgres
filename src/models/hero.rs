@@ -2,8 +2,8 @@ use diesel::{QueryDsl, ExpressionMethods};
 use diesel::{PgConnection, RunQueryDsl};
 use crate::schema::heroes::dsl::*;
 use crate::schema::heroes;
-
-#[derive(Serialize, Deserialize, Queryable, Insertable, AsChangeset)]
+use rocket_okapi::{JsonSchema};
+#[derive(Serialize, Deserialize, Queryable, Insertable, AsChangeset, JsonSchema)]
 #[table_name = "heroes"]
 pub struct Hero {
     pub id: Option<i32>,
