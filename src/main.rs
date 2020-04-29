@@ -8,7 +8,8 @@
 #[macro_use] extern crate rocket_contrib;
 #[macro_use]
 extern crate diesel;
-
+use rocket_okapi::swagger_ui::{make_swagger_ui, SwaggerUIConfig, UrlObject};
+use rocket_okapi::{routes_with_openapi};
 pub mod models;
 pub mod crud;
 pub mod  db;
@@ -16,26 +17,26 @@ pub mod schema;
 
 use crud::crud_hero as api;
 
-
-#[get("/<id>/<shop>")]
-fn index(id:u8,shop: String) -> String {
-    format!("id: {} , shoppping {}",id,shop)
-}
-
 fn main() {
 
     rocket::ignite()
         .manage(db::connect())
-        .mount("/hero", routes![
+        .mount("/hero", routes_with_openapi![
         api::create,
         api::update,
         api::delete
         ])
-        .mount("/heroes", routes![
-        crud::crud_hero::read
+        .mount("/heroes", routes_with_openapi![
+        api::read
         ])
-       /* .register(
-            catchers![api::not_found]
-        )*/
+        .mount("/swagger", make_swagger_ui(
+            &SwaggerUIConfig {
+                url: Some("/hero/openapi.json".to_owned()),
+                urls: Some(vec![
+                    UrlObject::new("Hero", "/hero/openapi.json"),
+                    UrlObject::new("Heroes", "/heroes/openapi.json")
+                ]),
+            }
+        ))
         .launch();
 }
