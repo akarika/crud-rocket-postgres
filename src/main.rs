@@ -14,7 +14,7 @@ pub mod models;
 pub mod crud;
 pub mod  db;
 pub mod schema;
-
+pub mod errors;
 use crud::crud_hero as api;
 
 fn main() {
@@ -24,7 +24,8 @@ fn main() {
         .mount("/hero", routes_with_openapi![
         api::create,
         api::update,
-        api::delete
+        api::delete,
+        api::show
         ])
         .mount("/heroes", routes_with_openapi![
         api::read
