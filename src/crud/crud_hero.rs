@@ -1,12 +1,8 @@
 use crate::models::hero::Hero;
-use rocket_contrib::json::{Json, JsonValue};
 use crate::db;
-use rocket_okapi::{openapi, JsonSchema};
 use crate::errors::CrudError;
-#[derive(serde::Serialize, JsonSchema)]
-pub struct ResponseRequest {
-    reply: bool,
-}
+use rocket_contrib::json::{Json, JsonValue};
+use rocket_okapi::{openapi};
 
 
 #[openapi]
